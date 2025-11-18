@@ -1,6 +1,7 @@
 return { -- Autocompletion
   'hrsh7th/nvim-cmp',
   dependencies = {
+    'milanglacier/minuet-ai.nvim',
     -- Snippet Engine & its associated nvim-cmp source
     {
       'L3MON4D3/LuaSnip',
@@ -75,67 +76,41 @@ return { -- Autocompletion
       },
       completion = { completeopt = 'menu,menuone,noinsert' },
 
-      -- For an understanding of why these mappings were
-      -- chosen, you will need to read `:help ins-completion`
-      --
-      -- No, but seriously. Please read `:help ins-completion`, it is really good!
       mapping = cmp.mapping.preset.insert {
-        -- Select the [n]ext item
+        -- Navigate completion items with Ctrl+j/k
+        ['<C-j>'] = cmp.mapping.select_next_item(),
+        ['<C-k>'] = cmp.mapping.select_prev_item(),
+
+        -- Also keep Ctrl+n/p as alternatives
         ['<C-n>'] = cmp.mapping.select_next_item(),
-        -- Select the [p]revious item
         ['<C-p>'] = cmp.mapping.select_prev_item(),
 
-        -- Scroll the documentation window [b]ack / [f]orward
+        -- Scroll documentation
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
 
-        -- Accept ([y]es) the completion.
-        --  This will auto-import if your LSP supports it.
-        --  This will expand snippets if the LSP sent a snippet.
-        ['<C-y>'] = cmp.mapping.confirm { select = true },
-
-        -- If you prefer more traditional completion keymaps,
-        -- you can uncomment the following lines
-        --['<CR>'] = cmp.mapping.confirm { select = true },
-        --['<Tab>'] = cmp.mapping.select_next_item(),
-        --['<S-Tab>'] = cmp.mapping.select_prev_item(),
-
-        -- Manually trigger a completion from nvim-cmp.
-        --  Generally you don't need this, because nvim-cmp will display
-        --  completions whenever it has completion options available.
+        -- Trigger completion manually
         ['<C-Space>'] = cmp.mapping.complete {},
 
-        -- Think of <c-l> as moving to the right of your snippet expansion.
-        --  So if you have a snippet that's like:
-        --  function $name($args)
-        --    $body
-        --  end
-        --
-        -- <c-l> will move you to the right of each of the expansion locations.
-        -- <c-h> is similar, except moving you backwards.
-        ['<C-l>'] = cmp.mapping(function()
-          if luasnip.expand_or_locally_jumpable() then
-            luasnip.expand_or_jump()
-          end
-        end, { 'i', 's' }),
-        ['<C-h>'] = cmp.mapping(function()
-          if luasnip.locally_jumpable(-1) then
-            luasnip.jump(-1)
-          end
-        end, { 'i', 's' }),
+        -- Accept completion with Ctrl+l or Enter
+        ['<C-l>'] = cmp.mapping.confirm({ select = true }),
+        ['<CR>'] = cmp.mapping.confirm { select = false },
 
-        -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-        --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
-        -- Select next/previous item with Tab / Shift + Tab
+        -- Close/dismiss completion menu with Ctrl+h
+        ['<C-h>'] = cmp.mapping.abort(),
+
+        -- Tab: Accept completion or navigate forward in snippets
         ['<Tab>'] = cmp.mapping(function(fallback)
           if cmp.visible() then
-            cmp.select_next_item()
+            cmp.confirm({ select = true })
           elseif luasnip.expand_or_locally_jumpable() then
             luasnip.expand_or_jump()
           else
             fallback()
           end
         end, { 'i', 's' }),
+
+        -- Shift+Tab: Navigate backward in snippets
         ['<S-Tab>'] = cmp.mapping(function(fallback)
           if cmp.visible() then
             cmp.select_prev_item()
@@ -152,6 +127,7 @@ return { -- Autocompletion
           -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
           group_index = 0,
         },
+        { name = 'minuet' },
         { name = 'nvim_lsp' },
         { name = 'luasnip' },
         { name = 'buffer' },
@@ -162,6 +138,7 @@ return { -- Autocompletion
         format = function(entry, vim_item)
           vim_item.kind = string.format('%s', kind_icons[vim_item.kind])
           vim_item.menu = ({
+            minuet = '[AI]',
             nvim_lsp = '[LSP]',
             luasnip = '[Snippet]',
             buffer = '[Buffer]',

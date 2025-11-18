@@ -8,9 +8,13 @@ return {
 			"nvim-telescope/telescope.nvim",
 		},
 		config = function()
+			-- Load centralized API configuration
+			local api_config = require("config.api_config")
+			local llm_model = api_config.local_llm.model
+
 			-- Function to call LLM and show result
 			local function send_to_llm(prompt)
-				local command = string.format("llm -m qwen2.5-coder:3b %q", prompt)
+				local command = string.format("llm -m %s %q", llm_model, prompt)
 				vim.fn.jobstart(command, {
 					stdout_buffered = true,
 					on_stdout = function(_, data)
@@ -41,7 +45,7 @@ return {
 
 			-- Normal mode: prompt for user input
 			vim.keymap.set("n", "<leader>lp", function()
-				vim.ui.input({ prompt = "Prompt for qwen2.5-coder:3b > " }, function(input)
+				vim.ui.input({ prompt = "Prompt for " .. llm_model .. " > " }, function(input)
 					if input then
 						send_to_llm(input)
 					end
